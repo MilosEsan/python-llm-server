@@ -1,0 +1,238 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 130px;
+}
+
+/* Dodajte ove stilove u vaš App.css fajl */
+.header-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: around;
+}
+
+header {
+  top: 0;
+  position: fixed;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  height: 84px;
+  z-index: 999;
+  background-color: #f9f9f9;
+  align-items: stretch;
+}
+
+.new-chat-button {
+  margin-bottom: 100px;
+}
+
+.model-selection-container {
+  width: 100%;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: end;
+}
+
+.chat-container {
+  width: 100%;
+  padding: 10px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-container h2 {
+  margin-top: 0;
+}
+
+h3 {
+  text-align: center;
+}
+
+button {
+  padding: 10px 20px;
+  background-color: #004089;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+button:disabled {
+  background-color: #aaa;
+}
+
+.send-btn {
+  margin-left: auto;
+  margin-top: -41px;
+  height: 33px;
+  font-size: smaller;
+  height: 45px;
+  font-size: 12px;
+  padding: 11px;
+  background-color: transparent !important;
+  border: 0 !important;
+  color: black !important;
+  font-weight: bold !important;
+  text-decoration: underline !important;
+}
+
+input[type="file"] {
+  margin-top: 10px;
+}
+
+/* nav edit */
+.nav-tabs .nav-link {
+  color: black; 
+  border: none !important;
+  background-color: #f9f9f9;
+}
+
+.nav-tabs .nav-link.active {
+  color: blue !important; 
+  border: none; 
+  border-bottom: 2px solid blue !important; 
+  background-color: #f9f9f9 !important;
+}
+
+.nav-tabs .nav-link:hover {
+  color: blue; 
+  border: none; 
+}
+
+.tab-content {
+  width: 100% !important
+}
+
+/* rectangles */
+.oval-rectangle {
+  border: 2px solid blue; 
+  border-radius: 25px; 
+  padding: 20px;
+  text-align: center;
+  background-color: white; 
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+}
+
+.oval-rectangle p {
+  margin: 0;
+  font-size: 18px; 
+  color: black; 
+}
+
+/* chat modification */
+
+
+.chat-history {
+  padding: 10px;
+  height: auto;
+  overflow-y: auto;
+  margin-bottom: 10px;
+  overflow: auto;
+}
+
+.message-pair {
+  margin: 5px 0;
+}
+
+.user-message {
+  text-align: right;
+}
+
+.server-message {
+  text-align: left;
+  padding: 20px;
+}
+
+.container {
+  max-width: 100% !important;
+}
+
+textarea {
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 10px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  resize: none !important;
+  padding-bottom: 40px;
+  min-height: 40px;
+  max-height: 500px;
+}
+
+.tab-content {
+  width: 75% !important;
+}
+
+.user-message {
+  background-color: #f9f9f9;
+  padding: 20px;
+  margin-bottom: 10px;
+}
+
+#model-select {
+  width: 350px;
+}
+
+.user-image-container{
+  font-size: 40px; 
+  font-weight: bold; 
+  width: 65px; 
+  height: 65px; 
+  border-radius: 100%; 
+  background-color: #6c757d; 
+  margin-right: 20px;
+  padding: 20px;
+}
+
+.chatbot-image-container {
+  font-size: 40px; 
+  font-weight: bold; 
+  width: 65px; 
+  height: 65px; 
+  border-radius: 100%; 
+  margin-right: 20px;
+}
+
+.upload-label {
+    margin-left: 10px;
+    margin-top: -40px !important;
+    position: absolute;
+}
+
+/* spinner */
+
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 8px solid #f3f3f3; /* Light grey */
+  border-top: 8px solid blue; /* Blue */
+  border-radius: 50%;
+  animation: spin 2s linear infinite;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+
+@media(max-width: 740px) {
+  .tab-content {
+    width: 100% !important;
+    padding: 20px;
+  }
+
+  .model-selection-container {
+    gap: 10px;
+  }
+
+  .model-selection-container > .spinner {
+    margin: auto !important;
+  }
+}

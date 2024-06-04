@@ -1,0 +1,5 @@
+websocket_frontend/node_modules
+websocket_frontend/package-lock.json
+logs
+venv
+.DS_Store

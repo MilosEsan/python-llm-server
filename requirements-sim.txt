@@ -1,0 +1,4 @@
+aioconsole==0.7.1
+loguru==0.7.2
+pypdf==4.2.0
+websockets==12.0

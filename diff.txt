@@ -1,0 +1,125 @@
+diff --git a/llm_chat_app.txt b/llm_chat_app.txt
+index d099451..65f45fa 100644
+--- a/llm_chat_app.txt
++++ b/llm_chat_app.txt
+@@ -34,6 +34,8 @@ FE should have following functionality
+     - Nothing hppens when we change these
+ 5. Rag selection and manipulation functionality (For later)
+     - To be defined
++6. Server heartbeat
++    - Server sends heartbeat messages every 20 seconds, client can discard these
+ 
+ JSON definitions:
+ 
+@@ -101,24 +103,36 @@ query update json (Received from server after query is sent):
+ }
+ 
++server heartbeat json (Can be received any time, can be discarded):
++{
++    "type":"heartbeat",
++    "message":
++    {
++        "server_time":"28/05/2024 00:58:00" // for example
++    }
+ }
+ 
+-
++- Python client can accept 3 commands, query (to send query), file(to attach file), close(to close connection), commads are given by typing command the pressing enter)
++  In following tests the commands sent to client are denoted with $<command>
+ Communication tests:
+ 
+ 1. Test initial connection:
+     Test 1.1 - Test initial connection when server is ready (connect client after server loads the model), it shoud reply with state=READY:
+-    Reply from server: {"type":"server_state","message":{"available_models": ["mixtral-8x7b-instruct-v0.1.Q4_K_M", "mixtral-8x7b-instruct-v0.1.Q5_K_M", "Meta-Llama-3-8B-Instruct.Q5_K_M", "Meta-Llama-3-8B-Instruct.Original", "Meta-Llama-3-70B-Instruct.Q5_K_M"], "current_model": "mixtral-8x7b-instruct-v0.1.Q4_K_M", "llm_state": "READY"}}
++    Reply from server: {"type":"server_state","message":{"available_models": ["mixtral-8x7b-instruct-v0.1.Q4_K_M", "mixtral-8x7b-instruct-v0.1.Q5_K_M", "Meta-Llama-3-8B-Instruct.Q5_K_M", "Meta-Llama-3-8B-Instruct.Original", "Meta-Llama-3-70B-Instruct.Q5_K_M"], "current_model": "mixtral-8x7b-instruct-v0.1.Q4_K_M", "llm_state": "READY", "cnurrent_active_clients": 1}}
+ 
+ 2. Test request queries and replies:
+ 
+ Test 2.1 - Testing simple query wthout file and no model change:
+-Request:    {"type":"query_request","message":{"query":"Hi, this is the query.","model":"mixtral-8x7b-instruct-v0.1.Q4_K_M","parameters":{}}}
++Request:    $query                                                      // input query command then press enter to input query 
++            ${"type":"query_request","message":{"query":"Hi, this is the query.","model":"mixtral-8x7b-instruct-v0.1.Q4_K_M","parameters":{}}}
+ Reply:      {"type":"query_request_update","message":{"update":"Current position in queue: 1"}}                                                     // Only one client is connected => it is put into a queue
+             {"type":"query_request_update","message":{"update":"Your request is being executed"}}                                                   // But it is taken out of the queue immediately.                                              
+             {"type":"query_response","message":{"token":"Your","last_token":false}}                                                                 // You start receiving reply word by word, "last_token":false indicating there will be more words comming
+@@ -146,7 +160,10 @@ Reply:      {"type":"query_request_update","message":{"update":"Current position
+             {"type":"query_response","message":{"token":"query.","last_token":true}}                                                                // Message is complete, indicated by "last_token":true
+ 
+ Test 2.2 - Testing simple query with file and no model change:
+-Request:    {"type":"query_request","message":{"query":"Hi, this is the query.","model":"mixtral-8x7b-instruct-v0.1.Q4_K_M","parameters":{},"file_data":"base64 string"}}   // Now we also have file data. I put bsic string in there not base64 ecoded just for testing
++Request:    $file                                                       // Input file command for clinet and press enter to attach file
++            $some_file.pdf                                              // Provide path to pdf file then press enter
++            $query                                                      // input query command then press enter to input query
++            ${"type":"query_request","message":{"query":"Hi, this is the query.","model":"mixtral-8x7b-instruct-v0.1.Q4_K_M","parameters":{}}}      // Client will add "file_data":"base64 string" field to json with file data converted to base64 string
+ Reply:      {"type":"query_request_update","message":{"update":"Current position in queue: 1"}}
+             {"type":"query_request_update","message":{"update":"Your request is being executed"}}
+             {"type":"query_response","message":{"token":"Your","last_token":false}}                                                                                         // When you collect all words it says at the end "You provided file with query"
+@@ -173,7 +190,8 @@ Reply:      {"type":"query_request_update","message":{"update":"Current position
+             {"type":"query_response","message":{"token":"query.","last_token":true}}
+ 
+ Test 2.3 - Testing simple query with no file and model change:
+-Request:    {"type":"query_request","message":{"query":"Hi, this is the query.","model":"Meta-Llama-3-70B-Instruct.Q5_K_M","parameters":{}}}                        // Now we put different model from the the one that is loaded
++Request:    $query                                                      // input query command then press enter to input query 
++            ${"type":"query_request","message":{"query":"Hi, this is the query.","model":"Meta-Llama-3-70B-Instruct.Q5_K_M","parameters":{}}}                        // Now we put different model from the the one that is loaded
+ Reply:      {"type":"query_request_update","message":{"update":"Current position in queue: 1"}}
+             {"type":"query_request_update","message":{"update":"Your request is being executed"}}
+             {"type":"server_state_update","message":{"update_type":"model_change", "state":"CHANGING_MODEL", "current_model":"Meta-Llama-3-70B-Instruct.Q5_K_M"}}   // You receive this message indicating that server will start changing model, you triggered this with your request but any client can trigger it and you will receive it
+@@ -204,7 +222,10 @@ Reply:      {"type":"query_request_update","message":{"update":"Current position
+ You can send same request again and now you wont receive query_request_update jsons because model loaded on the server is the one you are querying
+ 
+ Test 2.4 - Testing simple query with both file and model change:
+-Request:    {"type":"query_request","message":{"query":"Hi, this is the query.","model":"Meta-Llama-3-8B-Instruct.Original","parameters":{},"file_data":"base64 string"}}   // Now we put different model from the the one that is loaded and also include file data
++Request:    $file                                                       // Input file command for clinet and press enter to attach file
++            $some_file.pdf                                              // Provide path to pdf file then press enter
++            $query                                                      // input query command then press enter to input query 
++            ${"type":"query_request","message":{"query":"Hi, this is the query.","model":"Meta-Llama-3-8B-Instruct.Original","parameters":{}}}   // Now we put different model from the the one that is loaded and also include file data
+ Reply:      {"type":"query_request_update","message":{"update":"Current position in queue: 1"}}
+             {"type":"query_request_update","message":{"update":"Your request is being executed"}}
+             {"type":"server_state_update","message":{"update_type":"model_change", "state":"CHANGING_MODEL", "current_model":"Meta-Llama-3-8B-Instruct.Original"}}          // You now receive model change jsons and also when you collect all words it says at the end "You didnt provide file with query"
+@@ -236,28 +257,28 @@ Reply:      {"type":"query_request_update","message":{"update":"Current position
+ Multi client tests:
+ 
+ 
+-Instructions for running on Linux (open terminal and position inside main folder):
++Instructions for running server sim on Linux (open terminal and position inside main folder):
+ 1. Set up environment (Only done once):
+-    pip install python              # If dont have python and you are using ubuntu, if using other distro check online how to install
++    pip install python                      # If dont have python and you are using ubuntu, if using other distro check online how to install
+     python -m venv venv
+     source venv/bin/activate
+-    pip install -r requirements.txt
+-2. To run server:
+-    source venv/bin/activate        # Only do this if it was not done already in this terminal
+-    python ./server.py
++    pip install -r requirements-sim.txt
++2. To run server (in simulation mode):
++    source venv/bin/activate                # Only do this if it was not done already in this terminal
++    python ./server.py -s -du
+ 3. To run the python test client (You can run multiple clients):
+-    source venv/bin/activate        # Only do this if it was not done already in this terminal
+-    python ./test_client.py.py      # You can paste json examples from this file into client to see how it behaves
++    source venv/bin/activate                # Only do this if it was not done already in this terminal
++    python ./test_client.py.py -t           # You can paste json examples from this file into client to see how it behaves
+ 
+-Instructions for running on windows (open power shell from the project main folder):
++Instructions for running server sim on windows (open power shell from the project main folder):
+ - You need to install python on windows
+ 1. Set up environment (Only done once):
+-    python -m venv venv                 # Maybe use python.exe instead of python if it is not put properly on the path
+-    .\venv\Scripts\Activate.ps1         # If there is a problem with priviledges while running this try running command: Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+-    pip install -r .\requirements.txt
++    python -m venv venv                     # Maybe use python.exe instead of python if it is not put properly on the path
++    .\venv\Scripts\Activate.ps1             # If there is a problem with priviledges while running this try running command: Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
++    pip install -r .\requirements-sim.txt
+ 2. To run server:
+-    .\venv\Scripts\Activate.ps1         # Only do this if it was not done already in this power shell window
+-    python .\server.py
++    .\venv\Scripts\Activate.ps1             # Only do this if it was not done already in this power shell window
++    python .\server.py -s -du               # You can run python .\server.py -h to see what parameters can be set, for example adding -t 0.1 will lower delay between words sent to client to 0.1 seconds
+ 3. To run the python test client (You can run multiple clients):
+-    .\venv\Scripts\Activate.ps1         # Only do this if it was not done already in this power shell window
+-    python .\test_client.py.py          # You can paste json examples from this file into client to see how it behaves
+\ No newline at end of file
++    .\venv\Scripts\Activate.ps1             # Only do this if it was not done already in this power shell window
++    python .\test_client.py.py -t           # You can paste json examples from this file into client to see how it behaves
+\ No newline at end of file
