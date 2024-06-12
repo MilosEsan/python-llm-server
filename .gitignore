@@ -3,3 +3,4 @@ websocket_frontend/package-lock.json
 logs
 venv
 .DS_Store
+__pycache__
